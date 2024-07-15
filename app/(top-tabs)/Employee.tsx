@@ -44,8 +44,8 @@ const Employee = () => {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      <Text style={{ fontSize: 24, fontWeight: "bold", margin: 20 }}>
+    <View style={{ flex: 1, backgroundColor: '#fff', }}>
+      <Text style={{ fontSize: 14, fontWeight: "600", color: "#113C6D", width: "90%", alignSelf: "center", marginVertical: 10 }}>
         Employee Details
       </Text>
       <FlatList
@@ -55,6 +55,8 @@ const Employee = () => {
           <View
             style={{
               borderWidth: 1,
+              borderColor: "#DDDDDD",
+              // elevation: 5,
               borderRadius: 10,
               marginVertical: 10,
               width: "90%",
@@ -67,6 +69,7 @@ const Employee = () => {
                 flexDirection: "row",
                 justifyContent: "space-between",
                 borderBottomWidth: 1,
+                borderColor: "#DDDDDD",
                 padding: 10,
                 backgroundColor: "#E8F2FF",
                 alignItems: "center"
@@ -82,10 +85,11 @@ const Employee = () => {
                 <Icon source="trash-can-outline" size={18} color="red" />
               </TouchableOpacity>
             </View>
-            <View
-              style={{ flexDirection: "row", justifyContent: "space-between", backgroundColor: "#fff" }}
-            >
-              <View style={{ padding: 10 }}>
+
+            <View style={{ width: "100%", padding: 10, alignSelf: "center", justifyContent: "space-between" }}>
+              <View
+                style={{ flexDirection: "row", justifyContent: "space-between" }}
+              >
                 <Text
                   style={{
                     fontWeight: "500",
@@ -98,19 +102,30 @@ const Employee = () => {
                 <Text
                   style={{
                     fontWeight: "500",
-                    paddingVertical: 6,
+                    paddingBottom: 6,
+                    color: "#113C6D",
+                  }}
+                >
+                  {item?.employee_name}
+                </Text>
+              </View>
+
+              <View style={{
+                height: 1, backgroundColor: "#EEEEEE", marginVertical: 6
+              }} />
+
+              <View
+                style={{ flexDirection: "row", justifyContent: "space-between" }}
+              >
+                <Text
+                  style={{
+                    fontWeight: "500",
+                    paddingBottom: 6,
                     color: "#777777",
                   }}
                 >
                   Employee Salary
                 </Text>
-                <Text
-                  style={{ fontWeight: "500", paddingTop: 6, color: "#777777" }}
-                >
-                  Employee Age
-                </Text>
-              </View>
-              <View style={{ padding: 10, alignItems: "flex-end" }}>
                 <Text
                   style={{
                     fontWeight: "500",
@@ -118,28 +133,42 @@ const Employee = () => {
                     color: "#113C6D",
                   }}
                 >
-                  {item?.employee_name}
+                  {item?.employee_salary}
+                </Text>
+              </View>
+
+              <View style={{
+                height: 1, backgroundColor: "#EEEEEE", marginVertical: 6
+              }} />
+
+              <View
+                style={{ flexDirection: "row", justifyContent: "space-between" }}
+              >
+                <Text
+                  style={{
+                    fontWeight: "500",
+                    paddingBottom: 6,
+                    color: "#777777",
+                  }}
+                >
+                  Employee Age
                 </Text>
                 <Text
                   style={{
                     fontWeight: "500",
-                    paddingVertical: 6,
+                    paddingBottom: 6,
                     color: "#113C6D",
                   }}
-                >
-                  {item?.employee_salary}
-                </Text>
-                <Text
-                  style={{ fontWeight: "500", paddingTop: 6, color: "#113C6D" }}
                 >
                   {item?.employee_age}
                 </Text>
               </View>
             </View>
           </View>
-        )}
+        )
+        }
       />
-    </View>
+    </View >
   );
 };
 

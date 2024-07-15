@@ -7,8 +7,6 @@ import {
 } from "@react-navigation/material-top-tabs";
 import { withLayoutContext } from "expo-router";
 import { ParamListBase, TabNavigationState } from "@react-navigation/native";
-import Recording from "./Recording";
-import Employee from "./Employee";
 
 const { Navigator } = createMaterialTopTabNavigator();
 
@@ -22,6 +20,7 @@ export const MaterialTopTabs = withLayoutContext<
 const _layout = () => {
   return (
     <MaterialTopTabs
+      initialRouteName="Recording"
       screenOptions={{
         tabBarStyle: {},
         tabBarIndicatorStyle: { backgroundColor: "#143c6d", width: "30%", marginLeft: '10%', },
@@ -41,3 +40,21 @@ const _layout = () => {
 export default _layout;
 
 const styles = StyleSheet.create({});
+
+
+// import { StyleSheet, Text, View } from 'react-native'
+// import React from 'react'
+// import { Tabs } from 'expo-router';
+
+// const _layout = () => {
+//   return (
+//     <Tabs>
+//       <Tabs.Screen name="Recording" options={{}} />
+//       <Tabs.Screen name="Employee" options={{}} />
+//     </Tabs>
+//   )
+// }
+
+// export default _layout
+
+// const styles = StyleSheet.create({})
