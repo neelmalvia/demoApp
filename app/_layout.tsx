@@ -1,6 +1,7 @@
 import { Platform, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { Stack } from 'expo-router'
+import { Icon, IconButton } from 'react-native-paper'
 
 const _layout = () => {
   return (
@@ -11,8 +12,20 @@ const _layout = () => {
       headerTintColor: '#fff',
       headerTitleStyle: { fontWeight: 'bold' }
     }}>
-      <Stack.Screen name='(tabs)' options={{ headerTitle: "My Recordings" }} />
-      <Stack.Screen name='RecordingScreen' options={{ headerBackTitle: "Back", headerTitle: 'Recording' }} />
+      <Stack.Screen name='(tabs)'
+        options={{
+          headerTitle: "My Recordings",
+          headerLeft: () => (
+            <View style={{ marginRight: Platform.OS == "android" ? 10 : 0 }}>
+              <Icon
+                source={"menu"}
+                size={28}
+                color='#fff'
+              />
+            </View>
+          )
+        }} />
+      <Stack.Screen name='RecordingScreen' options={{ headerTitle: 'Recording' }} />
     </Stack>
   )
 }

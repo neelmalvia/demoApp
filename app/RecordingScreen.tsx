@@ -3,7 +3,7 @@ import React from 'react'
 
 const RecordingScreen = () => {
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: "#fff" }}>
       <Text>This is recording screen</Text>
     </View>
   )

@@ -8,7 +8,7 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 const Recording = () => {
   const { navigate } = useNavigation()
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
 
       <View
         style={{
