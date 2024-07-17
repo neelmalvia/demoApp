@@ -68,8 +68,8 @@ const Employee = () => {
               style={{
                 flexDirection: "row",
                 justifyContent: "space-between",
-                borderBottomWidth: 1,
-                borderColor: "#DDDDDD",
+                // borderBottomWidth: 1,
+                // borderColor: "#DDDDDD",
                 padding: 10,
                 backgroundColor: "#E8F2FF",
                 alignItems: "center"

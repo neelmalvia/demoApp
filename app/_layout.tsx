@@ -29,6 +29,7 @@ const _layout = () => {
         }}
       />
       <Stack.Screen name='RecordingScreen' options={{ headerTitle: 'Recording Screen' }} />
+      <Stack.Screen name='AudioRecorderPlayer' options={{ headerTitle: 'Audio Recording Screen' }} />
     </Stack>
   )
 }
