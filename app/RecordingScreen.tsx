@@ -1,4 +1,4 @@
-import { Alert, Button, Image, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Button, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import React, { useState } from "react";
 import { Audio } from "expo-av";
 import { Icon } from "react-native-paper";
@@ -108,7 +108,7 @@ const RecordingScreen = () => {
   function getRecordingLines() {
     return recordings.map((recordingLine: any, index: any) => (
       <View key={index} style={{ marginVertical: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
-        <Text>
+        <Text style={{}}>
           Recording #{index + 1} | {recordingLine.duration}
           {/* {recordingLine.name} | Recording #{index + 1} | {recordingLine.duration} */}
         </Text>
@@ -160,44 +160,71 @@ const RecordingScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
-
-      <Image
-        source={require("../assets/images/Recording.png")}
-        style={{ marginBottom: 6 }}
-      />
-
+    <View style={[styles.container, {}]}>
       {/* <Text>recording - {JSON.stringify(recording)}</Text> */}
       {/* <Text>recordings - {JSON.stringify(recordings)}</Text> */}
 
-      <View style={{ marginVertical: 10 }}>
-        <Text style={{ fontSize: 60, fontWeight: 'bold', color: "#AAAAAA" }}>
-          {`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`}
-        </Text>
+      <View style={{ justifyContent: "center", alignItems: "center", padding: 10, alignSelf: "center" }}>
+        <Image
+          source={require("../assets/images/Recording.png")}
+          style={{ marginBottom: 6 }}
+        />
+
+        <View style={{ marginVertical: 10 }}>
+          <Text style={{ fontSize: 60, fontWeight: 'bold', color: "#AAAAAA" }}>
+            {`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`}
+          </Text>
+        </View>
+
+        <View style={{ flexDirection: 'row', width: "80%", justifyContent: "space-between" }}>
+          <Button
+            title={"PopUp"}
+            onPress={() => { setModalVisible(true) }}
+          />
+
+          {(recordings?.length > 0 &&
+            <View style={{}}>
+              <Button
+                title={"Clear Recordings"}
+                onPress={clearRecordings}
+              />
+            </View>
+          )}
+        </View>
       </View>
 
-      {/* <Button
-        title={recording ? "Stop Recording" : "Start Recording"}
-        onPress={recording ? stopRecording : startRecording}
-      /> */}
-      {(recordings?.length > 0 &&
-        <Button
-          title={"Clear Recordings"}
-          onPress={clearRecordings}
-        />
-      )}
-      <View style={{ marginVertical: 10 }}>
+      <ScrollView
+        style={{
+          marginBottom: 80,
+          marginVertical: 10,
+          // elevation: 3,
+          borderWidth: 1,
+          borderColor: `${"#113C6D"}33`,
+          backgroundColor: "#fff",
+          paddingHorizontal: 20,
+          borderRadius: 10,
+          flex: 1,
+        }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: 'center',
+        }}
+      >
         {recordings.length > 0 ? (
           getRecordingLines("recordingName")
         ) : (
-          <Text>No recordings yet.</Text>
+          <Text style={{ textAlign: "center" }}>No recordings yet.</Text>
         )}
-      </View>
+      </ScrollView>
 
-      <Button
-        title={"PopUp"}
-        onPress={() => { setModalVisible(true) }}
-      />
+
+      <View style={{ position: 'absolute', bottom: 10, flexDirection: "row", alignItems: "center", alignSelf: "center", width: "70%", justifyContent: 'space-evenly' }}>
+        <Icon source={"close"} size={34} color={recording ? "grey" : "green"} />
+        <Pressable onPress={recording ? stopRecording : startRecording}>
+          <Icon source={recording ? "square-rounded" : "checkbox-blank-circle"} size={74} color="red" />
+        </Pressable>
+        <Icon source={"check"} size={34} color={recording ? "grey" : "red"} />
+      </View>
 
       <Modal
         animationType="slide"
@@ -246,14 +273,7 @@ const RecordingScreen = () => {
         </KeyboardAvoidingView>
       </Modal>
 
-      <View style={{ position: 'absolute', bottom: 30, flexDirection: "row", alignItems: "center", alignSelf: "center", width: "70%", justifyContent: 'space-evenly' }}>
-        <Icon source={"close"} size={34} color={recording ? "grey" : "green"} />
-        <Pressable onPress={recording ? stopRecording : startRecording}>
-          <Icon source={recording ? "square-rounded" : "checkbox-blank-circle"} size={74} color="red" />
-        </Pressable>
-        <Icon source={"check"} size={34} color={recording ? "grey" : "red"} />
-      </View>
-    </View>
+    </View >
   );
 };
 
@@ -262,8 +282,8 @@ export default RecordingScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    // alignItems: "center",
+    // justifyContent: "center",
     backgroundColor: "#fff",
     padding: 10,
   },
