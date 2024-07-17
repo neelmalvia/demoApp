@@ -1,9 +1,7 @@
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import React from "react";
-import { Link, useNavigation } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { Button, Icon, IconButton } from "react-native-paper";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { useNavigation } from "expo-router";
+import { Icon, } from "react-native-paper";
 
 const Recording = () => {
 
@@ -22,10 +20,10 @@ const Recording = () => {
         backgroundColor: `${item.color}33`,
         borderWidth: 1,
         borderColor: item.color,
-        height: 80,
-        width: "38%",
-        marginBottom: 10,  // Space between rows
-        marginRight: 10,   // Space between columns
+        height: 100,
+        width: "48%",                  // Adjusted width to fit two cards comfortably
+        marginBottom: 20,              // Increased space between rows
+        marginRight: 10,               // Space between columns
         paddingHorizontal: 10,
         paddingVertical: 5,
         justifyContent: "space-between",
@@ -33,11 +31,11 @@ const Recording = () => {
       }}>
         <Text style={{ color: "#333333", fontWeight: "600" }}>{item.title}</Text>
         <View style={{ flexDirection: 'row', justifyContent: "flex-end", marginTop: 5 }}>
-          <Pressable onPress={() => console.log("Play!")}>
-            <Icon source={"play"} size={20} />
+          <Pressable style={{ padding: 6, backgroundColor: "#fff", borderRadius: 100, marginRight: 10 }} onPress={() => console.log("Play!")}>
+            <Icon source={"play"} size={20} color="#113C6D" />
           </Pressable>
-          <Pressable onPress={() => console.log("Delete!")}>
-            <Icon source={"trash-can-outline"} size={20} />
+          <Pressable style={{ padding: 6, backgroundColor: "#fff", borderRadius: 100 }} onPress={() => console.log("Delete!")}>
+            <Icon source={"trash-can-outline"} size={20} color="#D90000" />
           </Pressable>
         </View>
       </View>
@@ -54,12 +52,12 @@ const Recording = () => {
         renderItem={renderRecordingCard}
         keyExtractor={item => item.id}
         numColumns={2}
-        style={{ marginTop: 40, alignSelf: "center" }}
+        style={{}}
         contentContainerStyle={{
-          // flex: 1,
-
-          justifyContent: "space-between",  // Adjusts spacing between columns
-          paddingHorizontal: 10,           // Adjusts left and right padding
+          alignItems: 'center',         // Centering the content horizontally
+          paddingHorizontal: 10,        // Adjusts left and right padding
+          paddingTop: 40,               // Increased top padding for spacing
+          paddingBottom: 40,            // Increased bottom padding for spacing
         }}
       />
 
