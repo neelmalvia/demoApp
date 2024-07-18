@@ -1,24 +1,117 @@
 import { Dimensions, FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
-import React from "react";
-import { useNavigation } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
+import { useFocusEffect, useNavigation } from "expo-router";
 import { Icon, } from "react-native-paper";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useIsFocused } from "@react-navigation/native";
+import { Audio } from "expo-av";
 
 const Recording = () => {
+  const { navigate } = useNavigation()
 
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
   const itemWidth = (screenWidth - 20) / 2; // Subtracting padding and dividing by 3 for three columns
+  const [allRecordings, setAllRecordings] = useState([])
+  const ifFocused = useIsFocused()
 
-  const data = [
-    { id: '1', title: 'Recording 1', color: '#FF6347' },
-    { id: '2', title: 'Recording 2', color: '#6A5ACD' },
-    // { id: '3', title: 'Recording 3', color: '#20B2AA' },
-    // { id: '4', title: 'Recording 4', color: '#FFD700' },
-    // { id: '5', title: 'Recording 5', color: '#9370DB' },
-    // { id: '6', title: 'Recording 6', color: '#32CD32' },
-  ];
+  // useEffect(() => {
+  //   getRecordings()
+  // }, [ifFocused])
+  useFocusEffect(
+    useCallback(() => {
+      getRecordings()
+    }, [])
+  )
 
-  const renderRecordingCard = ({ item }) => {
+  useEffect(() => {
+    // Simulate loading or initialization of audio objects
+    const initializeAudioObjects = async () => {
+      const audioPromises = allRecordings.map(async (item) => {
+        const { sound } = await Audio.Sound.createAsync({ uri: item?.file });
+        item.sound = sound;
+      });
+      await Promise.all(audioPromises);
+      setAllRecordings(allRecordings);
+    };
+
+    initializeAudioObjects();
+  }, [allRecordings]);
+
+  const handlePlay = async (item: any) => {
+    if (item.sound) {
+      try {
+        await item?.sound?.replayAsync();
+        console.log('Playback started for', item.name);
+      }
+      catch (err) {
+        console.log(err);
+      }
+    }
+  };
+
+  const getRecordings = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('recordings');
+      if (jsonValue !== null) {
+        // AsyncStorage has a valid value
+        const parsedValue = JSON.parse(jsonValue);
+        setAllRecordings(parsedValue);
+        console.log("VALUE:: ", parsedValue);
+      } else {
+        // AsyncStorage returned null (key not found)
+        setAllRecordings([]);
+        console.log('No recordings found.');
+      }
+    } catch (e) {
+      // Error handling
+      console.error('Failed to fetch recordings:', e);
+      setAllRecordings([]);
+    }
+  };
+
+  // const deleteRecording = async () => {
+  //   try {
+  //     // Get the current recordings from AsyncStorage
+  //     let recordings = await AsyncStorage.getItem('recordings');
+  //     recordings = recordings ? JSON.parse(recordings) : [];
+
+  //     // Logic to delete all recordings
+  //     await AsyncStorage.removeItem('recordings');
+  //     setPrevRecordings([]); // Clear state to update UI
+  //     console.log('Recordings deleted successfully.');
+  //   } catch (e) {
+  //     console.error('Failed to delete recordings:', e);
+  //   }
+  // }
+
+  const deleteRecording = async (recordingId) => {
+    try {
+      // Get the current recordings from AsyncStorage
+      let recordings = await AsyncStorage.getItem('recordings');
+      recordings = recordings ? JSON.parse(recordings) : [];
+
+      // Find the index of the recording with the given ID
+      const index = recordings?.findIndex(recording => recording.id === recordingId);
+      if (index !== -1) {
+        // Remove the recording from the array
+        recordings?.splice(index, 1);
+
+        // Update AsyncStorage with the modified recordings array
+        await AsyncStorage.setItem('recordings', JSON.stringify(recordings));
+        console.log('Recording deleted successfully.');
+
+        // Update state to trigger UI update
+        setAllRecordings(recordings);
+      }
+    } catch (e) {
+      console.error('Failed to delete recording:', e);
+    }
+  }
+
+  const renderRecordingCard = ({ item, index }: any) => {
+    console.log('thisss', item);
+
     return (
       <View
         style={{
@@ -28,75 +121,82 @@ const Recording = () => {
           height: 100,
           margin: 3,
           padding: 6,
-          width: itemWidth,
+          width: (Dimensions.get('window').width - 20) / 2,
           paddingHorizontal: 10,
           paddingVertical: 5,
           justifyContent: "space-between",
           borderRadius: 6,
         }}>
-        <Text style={{ color: "#333333", fontWeight: "600" }}>{item.title}</Text>
+        <Text style={{ color: "#333333", fontWeight: "600" }}>{item.name}</Text>
         <View style={{ flexDirection: 'row', justifyContent: "flex-end", marginTop: 5 }}>
-          <Pressable style={{ padding: 6, backgroundColor: "#fff", borderRadius: 100, marginRight: 10 }} onPress={() => console.log("Play!")}>
+          <Pressable style={{ padding: 6, backgroundColor: "#fff", borderRadius: 100, marginRight: 10 }} onPress={() => {
+            console.log("Play!!");
+            // item?.sound?.replayAsync()
+            handlePlay(item)
+            console.log('payyyyyy ', item?.sound);
+          }}>
             <Icon source={"play"} size={20} color="#113C6D" />
           </Pressable>
-          <Pressable style={{ padding: 6, backgroundColor: "#fff", borderRadius: 100 }} onPress={() => console.log("Delete!")}>
+          <Pressable
+            style={{ padding: 6, backgroundColor: "#fff", borderRadius: 100 }}
+            onPress={() => {
+              console.log("Delete!")
+              deleteRecording(item.id);
+            }}>
             <Icon source={"trash-can-outline"} size={20} color="#D90000" />
           </Pressable>
         </View>
-      </View>
+      </View >
     );
   };
 
-  const { navigate } = useNavigation()
-
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
-
-      <View>
-        <FlatList
-          data={data}
-          renderItem={renderRecordingCard}
-          keyExtractor={item => item.id}
-          numColumns={2}
-          style={{}}
-          contentContainerStyle={{
-            alignItems: 'center',         // Centering the content horizontally
-            paddingHorizontal: 10,        // Adjusts left and right padding
-            paddingTop: 40,               // Increased top padding for spacing
-            paddingBottom: 40,            // Increased bottom padding for spacing
-          }}
-        />
-      </View>
-
-      <View
-        style={{
-          flex: 1,
-          alignSelf: "center",
-          alignItems: "center",
-          // justifyContent: "center",
-          width: "80%",
-        }}
-      >
-        <Image
-          source={require("../../assets/images/Search.png")}
-          style={{ marginBottom: 6 }}
-        />
-        <Text
+      {(allRecordings.length > 0 ?
+        <View>
+          <FlatList
+            data={allRecordings}
+            renderItem={renderRecordingCard}
+            keyExtractor={(item, i) => i.toString()}
+            numColumns={2}
+            style={{}}
+            contentContainerStyle={{
+              alignItems: 'center',
+              paddingHorizontal: 10,
+              paddingTop: 40,
+              paddingBottom: 40,
+            }}
+          />
+        </View>
+        :
+        <View
           style={{
-            fontSize: 20,
-            fontWeight: 700,
-            color: "#113C6D",
-            marginBottom: 6,
+            flex: 1,
+            justifyContent: "center",
+            alignSelf: "center",
+            alignItems: "center",
+            width: "80%",
           }}
         >
-          No Recoding Found!!
-        </Text>
-        <Text style={{ textAlign: "center" }}>
-          There's nothing here yet. Hit the record button to capture something
-          amazing!
-        </Text>
-      </View>
-
+          <Image
+            source={require("../../assets/images/Search.png")}
+            style={{ marginBottom: 6 }}
+          />
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: '700',
+              color: "#113C6D",
+              marginBottom: 6,
+            }}
+          >
+            No Recording Found!!
+          </Text>
+          <Text style={{ textAlign: "center" }}>
+            There's nothing here yet. Hit the record button to capture something amazing!
+          </Text>
+        </View>
+      )}
 
       <Pressable
         style={{

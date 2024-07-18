@@ -1,25 +1,45 @@
-import { Alert, Button, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Alert,
+  Button,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import React, { useState } from "react";
 import { Audio } from "expo-av";
 import { Icon } from "react-native-paper";
+import RNFS from 'react-native-fs';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "expo-router";
 
 const RecordingScreen = () => {
   const [recording, setRecording] = useState<any>(null);
-  const [recordings, setRecordings] = useState<any>([]);
+  const [savedRecordings, setSavedRecordings] = useState<any>([]);
   const [permissionResponse, requestPermission] = Audio.usePermissions();
   const [modalVisible, setModalVisible] = useState(false);
-  const [recordingName, setRecordingName] = useState('');
-  const [selectedColor, setSelectedColor] = useState('#FF6347');
+  const [recordingName, setRecordingName] = useState("");
+  const [selectedColor, setSelectedColor] = useState("");
 
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);
   const [counterInterval, setCounterInterval] = useState<any>(null); // Store interval ID
 
+  const { navigate } = useNavigation()
+
+  console.log("Recording stopped and stored at: ", recording, "saved--recording", savedRecordings);
+
   async function startRecording() {
     try {
-      if (permissionResponse?.status !== 'granted') {
-        console.log('Requesting permission..');
+      if (permissionResponse?.status !== "granted") {
+        console.log("Requesting permission..");
         await requestPermission();
       }
       await Audio.setAudioModeAsync({
@@ -27,10 +47,12 @@ const RecordingScreen = () => {
         playsInSilentModeIOS: true,
       });
 
-      console.log('Starting recording..');
-      const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      console.log("Starting recording..");
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
       setRecording(recording);
-      console.log('Recording started');
+      console.log("Recording started");
 
       // Start counter
       const intervalId = setInterval(() => {
@@ -52,15 +74,14 @@ const RecordingScreen = () => {
       }, 1000); // Update counter every second
 
       setCounterInterval(intervalId);
-
     } catch (err) {
-      console.error('Failed to start recording', err);
+      console.error("Failed to start recording", err);
     }
   }
 
   async function stopRecording() {
-    console.log('Stopping recording..');
-    setRecording(undefined);
+    console.log("Stopping recording..");
+    // setRecording(undefined);
 
     // Clear counter interval
     if (counterInterval) {
@@ -73,28 +94,88 @@ const RecordingScreen = () => {
     setMinutes(0);
     setSeconds(0);
 
+    // Open Modal
+    // setModalVisible(true);
+
     await recording.stopAndUnloadAsync();
-    await Audio.setAudioModeAsync(
-      {
-        allowsRecordingIOS: false,
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+    });
+    // const uri = recording.getURI();
+    // console.log("URI: " + uri);
+
+    // const { sound, status } = await recording.createNewLoadedSoundAsync();
+
+    // let allRecordings = [...savedRecordings];
+    // allRecordings.push({
+    //   name: "",
+    //   color: "",
+    //   sound: sound,
+    //   duration: await getDuratuionFormatted(status.durationMillis),
+    //   file: recording.getURI(),
+    // });
+    // setSavedRecordings(allRecordings);
+  }
+
+  // const saveRecordingsToLocal = async (savedFiles: any[]) => {
+  //   try {
+  //     const jsonValue = JSON.stringify(savedFiles);
+  //     await AsyncStorage.setItem('recordings', jsonValue);
+  //     console.log('Recordings saved successfully!', jsonValue);
+  //   } catch (e) {
+  //     console.error('Failed to save recordings:', e);
+  //   }
+  // };
+
+  const saveRecordingsToLocal = async (savedFiles: any[]) => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('recordings');
+      let existingRecordings: any[] = [];
+
+      if (jsonValue !== null) {
+        existingRecordings = JSON.parse(jsonValue);
       }
-    );
+      const updatedRecordings = [...existingRecordings, ...savedFiles];
+
+      const updatedJsonValue = JSON.stringify(updatedRecordings);
+      await AsyncStorage.setItem('recordings', updatedJsonValue);
+
+      console.log('Recordings saved successfully!', updatedJsonValue);
+    } catch (e) {
+      console.error('Failed to save recordings:', e);
+    }
+  };
+
+  const addRecordings = async (name: string, color: string) => {
     const uri = recording.getURI();
-    console.log('URI: ' + uri);
+    console.log("URI: " + uri);
 
     const { sound, status } = await recording.createNewLoadedSoundAsync();
 
-    let allRecordings = [...recordings];
+    // const sourcePath = RNFS?.MainBundlePath + `/assets/${name}.mp4`;  // Adjust the path as per your project structure
+    // const sourcePath = recording?.getURI()
+    // const destPath = RNFS?.DocumentDirectoryPath + `/Recordings/${name}.mp4`;
+
+    // try {
+    //   await RNFS?.copyFile(sourcePath, destPath);
+    //   console.log('File copied successfully.');
+    // } catch (error) {
+    //   console.error('Failed to copy file:', error);
+    // }
+
+    let allRecordings = [...savedRecordings];
     allRecordings.push({
+      // data: recording,
+      name,
+      color,
       sound: sound,
       duration: await getDuratuionFormatted(status.durationMillis),
       file: recording.getURI(),
     });
-    setRecordings(allRecordings);
-    console.log('Recording stopped and stored at', recordings);
-
-    // setModalVisible(true);
-
+    setSavedRecordings(allRecordings);
+    console.log('savedRecordings', [...savedRecordings])
+    saveRecordingsToLocal(allRecordings);
+    setRecording(undefined);
   }
 
   async function getDuratuionFormatted(milliseconds: any) {
@@ -105,53 +186,42 @@ const RecordingScreen = () => {
       : `${Math.floor(minutes)}:${seconds}`;
   }
 
-  function getRecordingLines() {
-    return recordings.map((recordingLine: any, index: any) => (
-      <View key={index} style={{ marginVertical: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
-        <Text style={{}}>
-          Recording #{index + 1} | {recordingLine.duration}
-          {/* {recordingLine.name} | Recording #{index + 1} | {recordingLine.duration} */}
-        </Text>
-        <Button
-          onPress={() => {
-            recordingLine.sound.replayAsync();
-          }}
-          title="Play"
-        />
-      </View>
-    ));
-  }
-
   function clearRecordings() {
-    setRecordings([]);
+    setSavedRecordings([]);
+    // AsyncStorage.removeItem('savedRecordings');
   }
 
-  const handleSaveRecording = async () => {
-    if (!recording) {
-      console.error('No recording to save');
-      return;
-    }
+  // const handleSaveRecording = async () => {
+  //   if (!recording) {
+  //     console.error('No recording to save');
+  //     return;
+  //   }
 
-    try {
-      const status = await recording.getStatusAsync(); // Ensure to use getStatusAsync() to await for the status
-      const savedRecording = {
-        sound: recording,
-        duration: getDuratuionFormatted(status.durationMillis),
-        file: recording.getURI(),
-        name: recordingName,
-        color: selectedColor,
-      };
+  //   try {
+  //     const status = await recording.getStatusAsync();
+  //     const savedRecording = {
+  //       sound: recording,
+  //       duration: await getDuratuionFormatted(status.durationMillis),
+  //       file: recording.getURI(),
+  //       name: recordingName,
+  //       color: selectedColor,
+  //     };
 
-      let allRecordings = [...recordings];
-      allRecordings.push(savedRecording);
-      setRecordings(allRecordings);
+  //     let allRecordings = [...savedRecordings];
+  //     allRecordings.push(savedRecording);
+  //     setSavedRecordings(allRecordings);
 
-      // setModalVisible(false);
-      // setRecordingName('');
-    } catch (error) {
-      console.error('Failed to save recording:', error);
-    }
-  };
+  //     // Save recordings to AsyncStorage
+  //     await AsyncStorage.setItem('savedRecordings', JSON.stringify(allRecordings));
+
+  //     // Clear modal state
+  //     setModalVisible(false);
+  //     setRecordingName('');
+
+  //   } catch (error) {
+  //     console.error('Failed to save recording:', error);
+  //   }
+  // };
 
   const Card = ({ color }: any) => (
     <View style={[styles.card, { backgroundColor: color }]}>
@@ -161,33 +231,48 @@ const RecordingScreen = () => {
 
   return (
     <View style={[styles.container, {}]}>
-      {/* <Text>recording - {JSON.stringify(recording)}</Text> */}
-      {/* <Text>recordings - {JSON.stringify(recordings)}</Text> */}
+      {/* <ScrollView>
+        <Text>recording - {JSON.stringify(recording)}</Text>
+        <Text>savedRecordings - {JSON.stringify(savedRecordings)}</Text>
+      </ScrollView> */}
 
-      <View style={{ justifyContent: "center", alignItems: "center", padding: 10, alignSelf: "center" }}>
+      <View
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+          padding: 10,
+          alignSelf: "center",
+        }
+        }
+      >
         <Image
           source={require("../assets/images/Recording.png")}
           style={{ marginBottom: 6 }}
         />
 
         <View style={{ marginVertical: 10 }}>
-          <Text style={{ fontSize: 60, fontWeight: 'bold', color: "#AAAAAA" }}>
-            {`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`}
+          <Text style={{ fontSize: 60, fontWeight: "bold", color: "#AAAAAA" }}>
+            {`${hours.toString().padStart(2, "0")}:${minutes
+              .toString()
+              .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`}
           </Text>
         </View>
 
-        <View style={{ flexDirection: 'row', width: "80%", justifyContent: "space-between" }}>
-          <Button
+        <View
+          style={{
+            flexDirection: "row",
+            width: "80%",
+            justifyContent: "space-between",
+          }}
+        >
+          {/* <Button
             title={"PopUp"}
             onPress={() => { setModalVisible(true) }}
-          />
+          /> */}
 
-          {(recordings?.length > 0 &&
+          {savedRecordings?.length > 0 && (
             <View style={{}}>
-              <Button
-                title={"Clear Recordings"}
-                onPress={clearRecordings}
-              />
+              <Button title={"Clear Recordings"} onPress={clearRecordings} />
             </View>
           )}
         </View>
@@ -207,21 +292,60 @@ const RecordingScreen = () => {
         }}
         contentContainerStyle={{
           flexGrow: 1,
-          justifyContent: 'center',
+          justifyContent: "center",
         }}
       >
-        {recordings.length > 0 ? (
-          getRecordingLines("recordingName")
+        {savedRecordings.length > 0 ? (
+          savedRecordings.map((item: any, index: number) => {
+            console.log('---->', item)
+            return (
+              <View key={index} style={{ marginVertical: 10, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                <View>
+                  <Text>Recording #{index + 1} | {item.duration}</Text>
+                  <Text>Name: {item.name} | Color: {item.color}</Text>
+                </View>
+                <Button
+                  onPress={() => {
+                    item.sound.replayAsync();
+                  }}
+                  title="Play"
+                />
+              </View>
+            )
+          })
         ) : (
           <Text style={{ textAlign: "center" }}>No recordings yet.</Text>
         )}
       </ScrollView>
 
-
-      <View style={{ position: 'absolute', bottom: 10, flexDirection: "row", alignItems: "center", alignSelf: "center", width: "70%", justifyContent: 'space-evenly' }}>
+      <View
+        style={{
+          position: "absolute",
+          bottom: 10,
+          flexDirection: "row",
+          alignItems: "center",
+          alignSelf: "center",
+          width: "70%",
+          justifyContent: "space-evenly",
+        }}
+      >
         <Icon source={"close"} size={34} color={recording ? "grey" : "green"} />
-        <Pressable onPress={recording ? stopRecording : startRecording}>
-          <Icon source={recording ? "square-rounded" : "checkbox-blank-circle"} size={74} color="red" />
+        {/* <Pressable onPress={recording ? stopRecording : startRecording}> */}
+        <Pressable
+          onPress={() => {
+            if (recording) {
+              setModalVisible(true);
+              stopRecording();
+            } else {
+              startRecording();
+            }
+          }}
+        >
+          <Icon
+            source={recording ? "square-rounded" : "checkbox-blank-circle"}
+            size={74}
+            color="red"
+          />
         </Pressable>
         <Icon source={"check"} size={34} color={recording ? "grey" : "red"} />
       </View>
@@ -230,12 +354,20 @@ const RecordingScreen = () => {
         animationType="slide"
         transparent={true}
         visible={modalVisible}
-        onRequestClose={() => {
-          Alert.alert('Modal has been closed.');
-          setModalVisible(!modalVisible);
-        }}
+      // onRequestClose={() => {
+      //   Alert.alert("Modal has been closed.");
+      //   setModalVisible(!modalVisible);
+      // }}
       >
-        <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: "rgba(0,0,0,.2)", justifyContent: "center", alignItems: "center" }}>
+        <KeyboardAvoidingView
+          behavior="padding"
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,.2)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <View style={styles.centeredView}>
             <View style={styles.modalView}>
               <Text style={styles.modalText}>Save Recording</Text>
@@ -246,23 +378,49 @@ const RecordingScreen = () => {
                 onChangeText={(text) => setRecordingName(text)}
               />
               <View style={{ alignSelf: "flex-start", marginBottom: 20 }}>
-                <Text style={{ color: "#333333", fontWeight: "600", marginBottom: 10 }}>Select Card Color</Text>
+                <Text
+                  style={{
+                    color: "#333333",
+                    fontWeight: "600",
+                    marginBottom: 10,
+                  }}
+                >
+                  Select Card Color
+                </Text>
                 <View style={styles.cardContainer}>
-                  {['#FF6347', '#6A5ACD', '#20B2AA', '#FFD700', '#9370DB', '#32CD32'].map((color, index) => (
+                  {[
+                    "#FF6347",
+                    "#6A5ACD",
+                    "#20B2AA",
+                    "#FFD700",
+                    "#9370DB",
+                    "#32CD32",
+                  ].map((color, index) => (
                     <Pressable
                       key={index}
                       style={[styles.card, { backgroundColor: color }]}
                       onPress={() => setSelectedColor(color)}
                     >
-                      {selectedColor === color && <Icon source="check" size={20} color="#FFFFFF" />}
+                      {selectedColor === color && (
+                        <Icon source="check" size={20} color="#FFFFFF" />
+                      )}
                     </Pressable>
                   ))}
                 </View>
               </View>
               <Pressable
-                style={{ paddingHorizontal: 18, paddingVertical: 10, backgroundColor: "#113C6D" }}
+                style={{
+                  paddingHorizontal: 18,
+                  paddingVertical: 10,
+                  backgroundColor: "#113C6D",
+                }}
                 onPress={() => {
                   // handleSaveRecording()
+                  // stopRecording();
+                  addRecordings(recordingName, selectedColor);
+                  setRecordingName("");
+                  setSelectedColor("")
+                  // navigate("Recording")
                   setModalVisible(!modalVisible);
                 }}
               >
@@ -272,7 +430,6 @@ const RecordingScreen = () => {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-
     </View >
   );
 };
@@ -282,55 +439,50 @@ export default RecordingScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // alignItems: "center",
-    // justifyContent: "center",
     backgroundColor: "#fff",
     padding: 10,
   },
   row: {
     flexDirection: "row",
-    alignItems: 'center',
+    alignItems: "center",
     justifyContent: "center",
     marginLeft: 10,
-    marginRight: 40
+    marginRight: 40,
   },
   fill: {
     flex: 1,
-    margin: 15
+    margin: 15,
   },
   modalContainer: {
-    // flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    // backgroundColor: 'white',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   input: {
     height: 40,
     width: 300,
-    borderColor: '#DDDDDD',
+    borderColor: "#DDDDDD",
     borderRadius: 6,
     borderWidth: 1,
     marginBottom: 20,
     paddingHorizontal: 10,
   },
   modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
   },
   centeredView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalView: {
     width: "80%",
-    backgroundColor: '#fff',
-    // borderRadius: 20,
+    backgroundColor: "#fff",
     padding: 20,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -345,38 +497,38 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   buttonOpen: {
-    backgroundColor: '#F194FF',
+    backgroundColor: "#F194FF",
   },
   buttonClose: {
-    backgroundColor: '#2196F3',
+    backgroundColor: "#2196F3",
   },
   textStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
   },
   modalText: {
     fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 20
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 20,
   },
   cardContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
   },
   card: {
     width: 40,
     height: 40,
     borderRadius: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 10,
   },
   cardText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
+    color: "#FFFFFF",
+    fontWeight: "bold",
     fontSize: 16,
   },
 });
