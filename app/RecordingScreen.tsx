@@ -25,7 +25,7 @@ const RecordingScreen = () => {
   const [permissionResponse, requestPermission] = Audio.usePermissions();
   const [modalVisible, setModalVisible] = useState(false);
   const [recordingName, setRecordingName] = useState("");
-  const [selectedColor, setSelectedColor] = useState("");
+  const [selectedColor, setSelectedColor] = useState("#FF6347");
 
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(0);
@@ -34,7 +34,8 @@ const RecordingScreen = () => {
 
   const { navigate } = useNavigation()
 
-  console.log("Recording stopped and stored at: ", recording, "saved--recording", savedRecordings);
+  console.log("Recording stopped and stored at: ", recording);
+  console.log("ALL SAVED: ", savedRecordings);
 
   async function startRecording() {
     try {
@@ -140,7 +141,7 @@ const RecordingScreen = () => {
       const updatedJsonValue = JSON.stringify(updatedRecordings);
       await AsyncStorage.setItem('recordings', updatedJsonValue);
 
-      console.log('Recordings saved successfully!', updatedJsonValue);
+      // console.log('Recordings saved successfully!', updatedJsonValue);
     } catch (e) {
       console.error('Failed to save recordings:', e);
     }
@@ -173,7 +174,7 @@ const RecordingScreen = () => {
       file: recording.getURI(),
     });
     setSavedRecordings(allRecordings);
-    console.log('savedRecordings', [...savedRecordings])
+    // console.log('savedRecordings', [...savedRecordings])
     saveRecordingsToLocal(allRecordings);
     setRecording(undefined);
   }
@@ -190,38 +191,6 @@ const RecordingScreen = () => {
     setSavedRecordings([]);
     // AsyncStorage.removeItem('savedRecordings');
   }
-
-  // const handleSaveRecording = async () => {
-  //   if (!recording) {
-  //     console.error('No recording to save');
-  //     return;
-  //   }
-
-  //   try {
-  //     const status = await recording.getStatusAsync();
-  //     const savedRecording = {
-  //       sound: recording,
-  //       duration: await getDuratuionFormatted(status.durationMillis),
-  //       file: recording.getURI(),
-  //       name: recordingName,
-  //       color: selectedColor,
-  //     };
-
-  //     let allRecordings = [...savedRecordings];
-  //     allRecordings.push(savedRecording);
-  //     setSavedRecordings(allRecordings);
-
-  //     // Save recordings to AsyncStorage
-  //     await AsyncStorage.setItem('savedRecordings', JSON.stringify(allRecordings));
-
-  //     // Clear modal state
-  //     setModalVisible(false);
-  //     setRecordingName('');
-
-  //   } catch (error) {
-  //     console.error('Failed to save recording:', error);
-  //   }
-  // };
 
   const Card = ({ color }: any) => (
     <View style={[styles.card, { backgroundColor: color }]}>
@@ -278,7 +247,7 @@ const RecordingScreen = () => {
         </View>
       </View>
 
-      <ScrollView
+      {/* <ScrollView
         style={{
           marginBottom: 80,
           marginVertical: 10,
@@ -297,7 +266,7 @@ const RecordingScreen = () => {
       >
         {savedRecordings.length > 0 ? (
           savedRecordings.map((item: any, index: number) => {
-            console.log('---->', item)
+            // console.log('---->', item)
             return (
               <View key={index} style={{ marginVertical: 10, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                 <View>
@@ -316,7 +285,7 @@ const RecordingScreen = () => {
         ) : (
           <Text style={{ textAlign: "center" }}>No recordings yet.</Text>
         )}
-      </ScrollView>
+      </ScrollView> */}
 
       <View
         style={{
@@ -354,10 +323,6 @@ const RecordingScreen = () => {
         animationType="slide"
         transparent={true}
         visible={modalVisible}
-      // onRequestClose={() => {
-      //   Alert.alert("Modal has been closed.");
-      //   setModalVisible(!modalVisible);
-      // }}
       >
         <KeyboardAvoidingView
           behavior="padding"
@@ -415,13 +380,19 @@ const RecordingScreen = () => {
                   backgroundColor: "#113C6D",
                 }}
                 onPress={() => {
-                  // handleSaveRecording()
-                  // stopRecording();
-                  addRecordings(recordingName, selectedColor);
-                  setRecordingName("");
-                  setSelectedColor("")
-                  // navigate("Recording")
-                  setModalVisible(!modalVisible);
+                  if (recordingName == "") {
+                    Alert.alert("Please give a name!")
+                  } else if (selectedColor == "") {
+                    Alert.alert("Please select a color!")
+                  } else {
+                    // handleSaveRecording()
+                    // stopRecording();
+                    addRecordings(recordingName, selectedColor);
+                    setRecordingName("");
+                    // setSelectedColor("")
+                    navigate("Recording")
+                    setModalVisible(!modalVisible);
+                  }
                 }}
               >
                 <Text style={{ color: "#fff", fontWeight: 600 }}>Submit</Text>
@@ -532,3 +503,95 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
+
+// import React from 'react';
+// import { StyleSheet, Text, View, Button } from 'react-native';
+// import { Audio } from 'expo-av';
+
+// const RecordingScreen = () => {
+//   const [recording, setRecording] = React.useState<any>();
+//   const [recordings, setRecordings] = React.useState<any>([]);
+
+//   async function startRecording() {
+//     try {
+//       const perm = await Audio.requestPermissionsAsync();
+//       if (perm.status === "granted") {
+//         await Audio.setAudioModeAsync({
+//           allowsRecordingIOS: true,
+//           playsInSilentModeIOS: true
+//         });
+//         const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+//         setRecording(recording);
+//       }
+//     } catch (err) { }
+//   }
+
+//   async function stopRecording() {
+//     setRecording(undefined);
+
+//     await recording.stopAndUnloadAsync();
+//     let allRecordings = [...recordings];
+//     const { sound, status } = await recording.createNewLoadedSoundAsync();
+//     allRecordings.push({
+//       sound: sound,
+//       duration: getDurationFormatted(status.durationMillis),
+//       file: recording.getURI()
+//     });
+
+//     setRecordings(allRecordings);
+//   }
+
+//   function getDurationFormatted(milliseconds) {
+//     const minutes = milliseconds / 1000 / 60;
+//     const seconds = Math.round((minutes - Math.floor(minutes)) * 60);
+//     return seconds < 10 ? `${Math.floor(minutes)}:0${seconds}` : `${Math.floor(minutes)}:${seconds}`
+//   }
+
+//   function getRecordingLines() {
+//     return recordings.map((recordingLine, index) => {
+//       return (
+//         <View key={index} style={styles.row}>
+//           <Text style={styles.fill}>
+//             Recording #{index + 1} | {recordingLine.duration}
+//           </Text>
+//           <Button onPress={() => recordingLine.sound.replayAsync()} title="Play"></Button>
+//         </View>
+//       );
+//     });
+//   }
+
+//   function clearRecordings() {
+//     setRecordings([])
+//   }
+
+//   return (
+//     <View style={styles.container}>
+//       <Button title={recording ? 'Stop Recording' : 'Start Recording\n\n\n'} onPress={recording ? stopRecording : startRecording} />
+//       {getRecordingLines()}
+//       <Button title={recordings.length > 0 ? '\n\n\nClear Recordings' : ''} onPress={clearRecordings} />
+//     </View>
+//   );
+// }
+
+// export default RecordingScreen;
+
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     backgroundColor: '#fff',
+//     alignItems: 'center',
+//     justifyContent: 'center',
+//   },
+//   row: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     justifyContent: 'center',
+//     marginLeft: 10,
+//     marginRight: 40
+//   },
+//   fill: {
+//     flex: 1,
+//     margin: 15
+//   }
+// });

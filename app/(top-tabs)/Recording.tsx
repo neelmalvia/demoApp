@@ -18,11 +18,21 @@ const Recording = () => {
   // useEffect(() => {
   //   getRecordings()
   // }, [ifFocused])
-  useFocusEffect(
-    useCallback(() => {
-      getRecordings()
-    }, [])
-  )
+
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     getRecordings()
+  //   }, [])
+  // )
+
+  useEffect(() => {
+    console.log("ALL Recordings: ", allRecordings.length);
+    // getRecordings()
+  }, [])
+
+  useFocusEffect(() => {
+    getRecordings()
+  })
 
   useEffect(() => {
     // Simulate loading or initialization of audio objects
@@ -34,18 +44,18 @@ const Recording = () => {
       await Promise.all(audioPromises);
       setAllRecordings(allRecordings);
     };
-
     initializeAudioObjects();
+
   }, [allRecordings]);
 
   const handlePlay = async (item: any) => {
     if (item.sound) {
       try {
         await item?.sound?.replayAsync();
-        console.log('Playback started for', item.name);
+        //console.log('Playback started for', item.name);
       }
       catch (err) {
-        console.log(err);
+        //console.log(err);
       }
     }
   };
@@ -57,11 +67,11 @@ const Recording = () => {
         // AsyncStorage has a valid value
         const parsedValue = JSON.parse(jsonValue);
         setAllRecordings(parsedValue);
-        console.log("VALUE:: ", parsedValue);
+        //console.log("VALUE:: ", parsedValue);
       } else {
         // AsyncStorage returned null (key not found)
         setAllRecordings([]);
-        console.log('No recordings found.');
+        //console.log('No recordings found.');
       }
     } catch (e) {
       // Error handling
@@ -79,7 +89,7 @@ const Recording = () => {
   //     // Logic to delete all recordings
   //     await AsyncStorage.removeItem('recordings');
   //     setPrevRecordings([]); // Clear state to update UI
-  //     console.log('Recordings deleted successfully.');
+  //     //console.log('Recordings deleted successfully.');
   //   } catch (e) {
   //     console.error('Failed to delete recordings:', e);
   //   }
@@ -99,7 +109,7 @@ const Recording = () => {
 
         // Update AsyncStorage with the modified recordings array
         await AsyncStorage.setItem('recordings', JSON.stringify(recordings));
-        console.log('Recording deleted successfully.');
+        //console.log('Recording deleted successfully.');
 
         // Update state to trigger UI update
         setAllRecordings(recordings);
@@ -110,7 +120,7 @@ const Recording = () => {
   }
 
   const renderRecordingCard = ({ item, index }: any) => {
-    console.log('thisss', item);
+    //console.log('thisss', item);
 
     return (
       <View
@@ -130,17 +140,17 @@ const Recording = () => {
         <Text style={{ color: "#333333", fontWeight: "600" }}>{item.name}</Text>
         <View style={{ flexDirection: 'row', justifyContent: "flex-end", marginTop: 5 }}>
           <Pressable style={{ padding: 6, backgroundColor: "#fff", borderRadius: 100, marginRight: 10 }} onPress={() => {
-            console.log("Play!!");
+            //console.log("Play!!");
             // item?.sound?.replayAsync()
             handlePlay(item)
-            console.log('payyyyyy ', item?.sound);
+            //console.log('payyyyyy ', item?.sound);
           }}>
             <Icon source={"play"} size={20} color="#113C6D" />
           </Pressable>
           <Pressable
             style={{ padding: 6, backgroundColor: "#fff", borderRadius: 100 }}
             onPress={() => {
-              console.log("Delete!")
+              //console.log("Delete!")
               deleteRecording(item.id);
             }}>
             <Icon source={"trash-can-outline"} size={20} color="#D90000" />
