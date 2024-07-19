@@ -17,7 +17,7 @@ export const MaterialTopTabs = withLayoutContext<
   MaterialTopTabNavigationEventMap
 >(Navigator);
 
-const _layout = () => {
+const Layout = () => {
   return (
     <MaterialTopTabs
       initialRouteName="Recording"
@@ -37,7 +37,7 @@ const _layout = () => {
   );
 };
 
-export default _layout;
+export default Layout;
 
 const styles = StyleSheet.create({});
 
