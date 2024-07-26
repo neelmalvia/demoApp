@@ -1,3 +1,4 @@
+import package com.dooboolab.audiorecorderplayer.RNAudioRecorderPlayerPackage;
 package com.anonymous.demoApp
 
 import android.app.Application
@@ -23,6 +24,7 @@ class MainApplication : Application(), ReactApplication {
           override fun getPackages(): List<ReactPackage> {
             // Packages that cannot be autolinked yet can be added manually here, for example:
             // packages.add(new MyReactNativePackage());
+            Packages.add(new RNAudioRecorderPlayerPackage())
             return PackageList(this).packages
           }
 

@@ -1,9 +1,34 @@
-import { PermissionsAndroid, Platform, StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import { PermissionsAndroid, Platform, StyleSheet, Text, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import AudioRecorderPlayer from 'react-native-audio-recorder-player';
+import { check, checkMultiple, PERMISSIONS, RESULTS } from 'react-native-permissions';
 
-const AudioRecorderPlayer = () => {
+const AudioRecorderPlayerScreen = () => {
+  const [recordSecs, setRecordSecs] = useState(0);
+  const [recordTime, setRecordTime] = useState('');
+  const [currentPositionSec, setCurrentPositionSec] = useState(0);
+  const [currentDurationSec, setCurrentDurationSec] = useState(0);
+  const [playTime, setPlayTime] = useState('');
+  const [duration, setDuration] = useState('');
 
-  async function startRecording() {
+  const audioRecorderPlayer = new AudioRecorderPlayer();
+  console.log('audioRecorderPlayer:', audioRecorderPlayer);
+
+  useEffect(() => {
+    return () => {
+      // Clean up listeners on component unmount
+      audioRecorderPlayer.removeRecordBackListener();
+      audioRecorderPlayer.removePlayBackListener();
+    };
+  }, []);
+
+  // checkMultiple([PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE, PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE, PERMISSIONS.ANDROID.RECORD_AUDIO]).then((statuses) => {
+  //   console.log('Read: ', statuses[PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE]);
+  //   console.log('Write: ', statuses[PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE]);
+  //   console.log('Audio: ', statuses[PERMISSIONS.ANDROID.RECORD_AUDIO]);
+  // });
+
+  const permission = async () => {
     if (Platform.OS === 'android') {
       try {
         const grants = await PermissionsAndroid.requestMultiple([
@@ -34,16 +59,85 @@ const AudioRecorderPlayer = () => {
     }
   }
 
+  const onStartRecord = async () => {
+    try {
+      // await permission(); // Ensure permissions are granted
+      const result = await audioRecorderPlayer.startRecorder();
+      audioRecorderPlayer.addRecordBackListener((e) => {
+        setRecordSecs(e.currentPosition);
+        setRecordTime(audioRecorderPlayer.mmssss(Math.floor(e.currentPosition)));
+        return;
+      });
+      console.log(result);
+    } catch (error) {
+      console.error('Error starting recorder:', error);
+    }
+  };
+
+
+  // const onStartRecord = async () => {
+  //   const result = await audioRecorderPlayer.startRecorder();
+  //   audioRecorderPlayer.addRecordBackListener((e) => {
+  //     setRecordSecs(e.currentPosition);
+  //     setRecordTime(audioRecorderPlayer.mmssss(Math.floor(e.currentPosition)));
+  //     return;
+  //   });
+  //   console.log(result);
+  // };
+
+  const onStopRecord = async () => {
+    const result = await audioRecorderPlayer.stopRecorder();
+    audioRecorderPlayer.removeRecordBackListener();
+    setRecordSecs(0);
+    console.log(result);
+  };
+
+  const onStartPlay = async () => {
+    console.log('onStartPlay');
+    const msg = await audioRecorderPlayer.startPlayer();
+    console.log(msg);
+    audioRecorderPlayer.addPlayBackListener((e) => {
+      setCurrentPositionSec(e.currentPosition);
+      setCurrentDurationSec(e.duration);
+      setPlayTime(audioRecorderPlayer.mmssss(Math.floor(e.currentPosition)));
+      setDuration(audioRecorderPlayer.mmssss(Math.floor(e.duration)));
+      return;
+    });
+  };
+
+  const onPausePlay = async () => {
+    await audioRecorderPlayer.pausePlayer();
+  };
+
+  const onStopPlay = async () => {
+    console.log('onStopPlay');
+    await audioRecorderPlayer.stopPlayer();
+    audioRecorderPlayer.removePlayBackListener();
+  };
+
   return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <Text onPress={() => { startRecording() }}>AudioRecorderPlayer</Text>
+    <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <Text onPress={() => onStartRecord()}>Start Recording</Text>
+        <Text onPress={() => onStopRecord()}>Stop Recording</Text>
+      </View>
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <Text onPress={() => onStartPlay()}>{recordTime}</Text>
+        <Text onPress={() => onStartPlay()}>{recordSecs}</Text>
+        <Text onPress={() => onStartPlay()}>{currentPositionSec}</Text>
+      </View>
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <Text onPress={() => onStartPlay()}>Start Playing</Text>
+        <Text onPress={() => onPausePlay()}>Pause Playing</Text>
+        <Text onPress={() => onStopPlay()}>Stop Playing</Text>
+      </View>
     </View>
-  )
+  );
 }
 
-export default AudioRecorderPlayer
+export default AudioRecorderPlayerScreen;
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({});
 
 
 // import React, { Component } from 'react';

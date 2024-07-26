@@ -33,6 +33,7 @@ const Layout = () => {
     >
       <MaterialTopTabs.Screen name="Recording" options={{ title: "Recording" }} />
       <MaterialTopTabs.Screen name="Employee" options={{ title: "Employee" }} />
+      <MaterialTopTabs.Screen name="AudioRecorderPlayerScreen" options={{ title: "Audio Recorder" }} />
     </MaterialTopTabs>
   );
 };
